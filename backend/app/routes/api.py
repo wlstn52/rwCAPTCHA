@@ -42,9 +42,9 @@ async def get_question(db: Session = Depends(get_db)):
     # 무작위로 질문 카테고리 하나를 선택
     target_category = random.choice(ALL_CATEGORIES)
 
-    random_images = crud.get_random_images(db=db)
+    random_images = crud.get_random_images(db=db, num=9)
     images_for_frontend = [
-        schemas.ImageInfo(url=img.path, index=i)
+        schemas.ImageInfo(url=img.path, index=i, uuid=str(img.uuid))
         for i, img in enumerate(random_images)
     ]
 
@@ -58,7 +58,7 @@ async def get_question(db: Session = Depends(get_db)):
 async def submit_selection(payload: schemas.ResultIn, db: Session = Depends(get_db)):
     selected_indices_set = set(payload.selected)
     category_asked = payload.category_asked # 프론트엔드에서 전달받은 질문 카테고리
-    images = [payload.images]
+    images = [i.uuid for i in payload.images]
 
     image_data = crud.get_image_data(db=db, image_uuids=images)
 

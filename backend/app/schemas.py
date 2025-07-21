@@ -12,7 +12,7 @@ class QuestionInfo(BaseModel):
 
 class ResultIn(BaseModel):
     images: List[ImageInfo]
-    selected: List[str]
+    selected: List[int]
     category_asked: str # 사용자가 어떤 카테고리에 대해 답변했는지 백엔드에 전달
 
 class ResultOut(BaseModel):
