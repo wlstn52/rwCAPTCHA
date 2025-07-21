@@ -12,6 +12,7 @@
         height: 100px;
         border: 2px solid gray;
         background-size: cover;
+        background-position: center;
         cursor: pointer;
         position: relative;
       }
@@ -81,7 +82,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          images: data.images,
+          images: images,
           selected: selectedArray,
           category_asked: currentQuestionCategory // 현재 질문 카테고리도 함께 보냄
         }),
