@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Dict
 
-from .. import schemas, crud, database, models  # models import 추가
+from .. import schemas, crud, database, models
 
 router = APIRouter()
 
@@ -22,7 +22,6 @@ def get_db():
 @router.get("/question", response_model=schemas.QuestionInfo)
 async def get_question(db: Session = Depends(get_db)):
     # 데이터베이스에서 모든 고유한 분류된 카테고리 가져오기
-    # 'unclassified'는 질문 카테고리로는 사용하지 않습니다.
     db_categories = db.query(models.ImagePath.label) \
         .filter(models.ImagePath.label != "unclassified") \
         .distinct().all()
@@ -31,29 +30,26 @@ async def get_question(db: Session = Depends(get_db)):
     if not all_classified_categories:
         raise HTTPException(status_code=500, detail="No classified categories found in database for questions.")
 
-    # 무작위로 질문 카테고리 하나를 선택 (분류된 카테고리 중에서)
     target_category = random.choice(all_classified_categories)
 
-    # 미분류 이미지 3개 가져오기
     unclassified_images = crud.get_unclassified_random_images(db=db, num=3)
 
-    # 미분류 이미지가 3개 미만인 경우 예외 처리 (선택 사항)
     if len(unclassified_images) < 3:
-        # 이 경우, 오류를 발생시키거나, 미분류 이미지 대신 분류된 이미지를 더 가져오는 등의 로직 추가 가능
-        print("경고: 미분류 이미지가 3개 미만입니다. 현재는 있는 이미지만 사용합니다.")
+        # 미분류 이미지가 3개 미만인 경우, 오류를 발생시키거나
+        # 또는 부족한 만큼 분류된 이미지를 더 가져오는 등의 유연한 로직을 추가할 수 있습니다.
+        # 여기서는 경고만 출력하고 현재 있는 미분류 이미지만 사용합니다.
+        print(f"경고: 데이터베이스에 미분류 이미지가 {len(unclassified_images)}개 밖에 없습니다. 3개를 채우지 못했습니다.")
 
-    # 분류된 이미지 가져오기 (총 9개 - 현재 미분류 이미지 수)
     num_classified_to_fetch = 9 - len(unclassified_images)
     classified_images = crud.get_classified_random_images(db=db, num=num_classified_to_fetch,
                                                           exclude_categories=["unclassified"])
 
-    # 미분류 이미지와 분류된 이미지를 합치고 섞습니다.
     all_selected_images = unclassified_images + classified_images
-    random.shuffle(all_selected_images)  # 이미지를 무작위로 섞어줍니다.
+    random.shuffle(all_selected_images)
 
     images_for_frontend = [
         schemas.ImageInfo(url=img.path, index=i, uuid=str(img.uuid))
-        for i, img in enumerate(all_selected_images)  # 섞인 순서대로 인덱스 부여
+        for i, img in enumerate(all_selected_images)
     ]
 
     return schemas.QuestionInfo(
@@ -62,47 +58,47 @@ async def get_question(db: Session = Depends(get_db)):
     )
 
 
-# 기존 제출 엔드포인트 수정
 @router.post("/submit", response_model=schemas.ResultOut)
 async def submit_selection(payload: schemas.ResultIn, db: Session = Depends(get_db)):
     selected_indices_set = set(payload.selected)
-    category_asked = payload.category_asked  # 프론트엔드에서 전달받은 질문 카테고리
-    images_uuids = [i.uuid for i in payload.images]
+    category_asked = payload.category_asked
+    images_uuids_from_payload = [i.uuid for i in payload.images]
 
-    image_data_from_db = crud.get_image_data(db=db, image_uuids=images_uuids)
+    # payload에 있는 모든 이미지의 DB 데이터를 한 번에 가져옵니다.
+    image_data_from_db = crud.get_image_data(db=db, image_uuids=images_uuids_from_payload)
 
-    # 백엔드에 있는 실제 이미지 데이터(DB에서 가져온)를 기반으로 해당 카테고리의 정답 인덱스를 찾습니다.
-    # 미분류 이미지는 'correct_indices_for_category' 계산에 포함되지 않습니다.
+    # UUID를 키로, DB 이미지 객체를 값으로 하는 맵을 만들어 효율적인 조회를 가능하게 합니다.
+    db_image_map = {str(img.uuid): img for img in image_data_from_db}
+
     correct_indices_for_category = set()
-    for i, img_info in enumerate(payload.images):
-        matched_db_image = next((db_img for db_img in image_data_from_db if str(db_img.uuid) == img_info.uuid), None)
-        # 질문 카테고리와 일치하는 이미지의 인덱스만 정답으로 간주합니다.
-        # 미분류 이미지(label == "unclassified")는 여기에 포함되지 않습니다.
-        if matched_db_image and matched_db_image.label == category_asked:
+    for i, img_info_from_payload in enumerate(payload.images):
+        db_img = db_image_map.get(img_info_from_payload.uuid)
+        if db_img and db_img.label == category_asked:
             correct_indices_for_category.add(i)
 
-            # 사용자가 선택한 인덱스 중 질문 카테고리에 해당하는 것만 필터링
     user_selected_classified_indices = set()
     for selected_idx in selected_indices_set:
-        # payload.images는 프론트엔드에서 보낸 순서대로 이미지를 담고 있으며, 그 순서에 해당하는 인덱스를 사용
-        if 0 <= selected_idx < len(payload.images):  # 인덱스 유효성 검사
-            img_info = payload.images[selected_idx]
-            matched_db_image = next((db_img for db_img in image_data_from_db if str(db_img.uuid) == img_info.uuid),
-                                    None)
-            if matched_db_image and matched_db_image.label == category_asked:
+        if 0 <= selected_idx < len(payload.images):
+            img_info_from_payload = payload.images[selected_idx]
+            db_img = db_image_map.get(img_info_from_payload.uuid)
+            if db_img and db_img.label == category_asked:  # 선택된 이미지 중 질문 카테고리와 일치하는 것만
                 user_selected_classified_indices.add(selected_idx)
 
-    # 미분류 이미지를 선택하거나 안한 것이 정답 여부에 영향을 주지 않으려면,
-    # 오직 질문 카테고리에 해당하는 이미지만을 비교해야 합니다.
-    # 즉, 사용자가 질문 카테고리의 모든 이미지를 선택했고, 질문 카테고리가 아닌 다른 분류된 이미지를 선택하지 않았다면 정답.
-    # 미분류 이미지를 선택했는지 여부는 여기서 고려하지 않습니다.
     is_correct = (user_selected_classified_indices == correct_indices_for_category)
 
-    # 정답인 경우에만 결과 저장
+    # 메인 캡챠가 정답인 경우에만 결과 및 미분류 이미지 피드백을 저장
     if is_correct:
-        # payload.selected는 사용자가 실제로 선택한 모든 이미지의 인덱스를 포함합니다.
-        # 미분류 이미지 선택 여부도 함께 저장됩니다.
-        crud.save_result(db, payload.selected, is_correct, category_asked)
-    # 오답인 경우 저장하지 않음 (요구사항 반영)
+        crud.save_result(db, payload.selected, is_correct, category_asked)  # 메인 캡챠 결과 저장
+
+        # 사용자가 선택한 이미지들 중 'unclassified' 이미지가 있다면 피드백 저장
+        for selected_idx in selected_indices_set:
+            if 0 <= selected_idx < len(payload.images):
+                img_info_from_payload = payload.images[selected_idx]
+                db_img = db_image_map.get(img_info_from_payload.uuid)
+
+                if db_img and db_img.label == "unclassified":
+                    # 이 미분류 이미지가 사용자에 의해 'category_asked' 카테고리와 함께 선택되었다고 기록
+                    crud.save_unclassified_feedback(db, db_img.uuid, category_asked)
+    # 오답인 경우 아무것도 저장하지 않음 (이전 요구사항 유지)
 
     return schemas.ResultOut(is_correct=is_correct)
