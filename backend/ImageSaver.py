@@ -12,7 +12,7 @@ for i in os.listdir(file_path):
     if os.path.isdir(os.path.join(file_path, i)):
         for j in os.listdir(os.path.join(file_path, i)):
             u = uuid.uuid4()
-            os.rename(os.path.join(file_path, i, j), f"C:\\Users\\jskim\\OneDrive\\Desktop\\HSC\\rwCAPTCHA\\backend\\img\\{u}.jpg")
+            os.rename(os.path.join(file_path, i, j), f"C:\\Users\\USER\\OneDrive\\바탕 화면\\project\\rwCAPTCHA\\backend\\img\\{u}.jpg")
             db.add(models.ImagePath(
                 uuid = u,
                 path = f"/img/{u}.jpg",
