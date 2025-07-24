@@ -40,6 +40,7 @@
     const selected = new Set();
     let images = []; // 백엔드로부터 받은 전체 이미지 목록
     let currentQuestionCategory = '';
+    let count = 0;
 
     // 질문 및 이미지 가져오기 함수
     async function fetchQuestion() {
@@ -75,6 +76,7 @@
           grid.appendChild(div);
         });
         resultDiv.textContent = ''; // 결과 메시지 초기화
+        count = 0;
       } catch (error) {
         console.error('Error fetching question:', error);
         questionDiv.textContent = '질문을 가져오는 데 실패했습니다.';
@@ -98,7 +100,8 @@
         }),
       });
       const data = await res.json();
-      resultDiv.textContent = data.is_correct ? '✅ 정답입니다!' : '❌ 다시 시도해보세요.';
+      resultDiv.textContent = data.is_correct ? '정답입니다!' : '다시 시도해보세요.';
+      count++;
 
       // 제출 후 상태 초기화 (선택 초기화)
       selected.clear();
@@ -107,7 +110,7 @@
       });
 
       // 오답일 경우 다음 문제로 자동으로 이동
-      if (!data.is_correct) {
+      if (data.is_correct || count >= 2) {
         setTimeout(() => {
           fetchQuestion(); // 새 질문 가져오기
         }, 2000); // 2초 후에 새 질문 로드 (사용자가 결과 메시지를 볼 시간 제공)
