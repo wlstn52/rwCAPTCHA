@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #grid {
+        display: grid;
+        grid-template-columns: repeat(4, 100px);
+        gap: 10px;
+      }
+      .tile {
+        width: 100px;
+        height: 100px;
+        border: 2px solid gray;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+      #question {
+        margin-bottom: 20px;
+        font-size: 1.5em;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>각 항목별 올바른 개수를 적으시오</h1>
+    <div id="grid"></div>
+    <div id="field"></div>
+    <div id="result"></div>
+  </body>
+  <script>
+    const categories = [
+        {category: "cardboard", name: "상자"},
+        {category: "glass", name: "유리"},
+        {category: "metal", name: "캔류/강철"},
+        {category: "paper", name: "종이"},
+        {category: "plastic", name: "플라스틱"},
+        {category: "trash", name: "일반 쓰레기"},
+    ];
+
+    const grid = document.getElementById('grid');
+    const resultDiv = document.getElementById('result');
+    const formTag = document.getElementById('field');
+    const submit_button = document.createElement('button');
+    const selected = new Set();
+    let images = []; // 백엔드로부터 받은 전체 이미지 목록
+    let currentQuestionCategory = '';
+    let count = 0;
+
+    function init(){
+      categories.forEach((data) => {
+        const category_div = document.createElement('div');
+        category_div.className = 'category_div';
+        const category_label = document.createElement('label');
+        category_label.textContent = data.name;
+        category_label.for = data.category;
+        category_div.appendChild(category_label);
+
+        const categroy_input = document.createElement('input');
+        categroy_input.className = 'category_input';
+        categroy_input.id = data.category;
+        categroy_input.required = true;
+        categroy_input.type = 'number';
+        categroy_input.min = 0;
+        category_div.appendChild(categroy_input);
+
+        formTag.appendChild(category_div);
+      });
+
+      submit_button.id = 'submit';
+      submit_button.type = 'button';
+      submit_button.textContent = '제출';
+
+      submit_button.addEventListener('click', async (event) => {
+        event.preventDefault();
+        let answers = [];
+        document.querySelectorAll('.category_input').forEach((i) => {
+          answers.push({category: i.id, amount:i.value});
+        });
+
+        const res = await fetch('http://localhost:8000/third/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          images: images, // 백엔드에서 받은 이미지 정보
+          answers: answers, // 사용자가 선택한 답
+        }),
+        });
+
+        const data = await res.json();
+        resultDiv.textContent = data.is_correct ? '인증에 성공했습니다.' : '다시 시도해주세요';
+      })
+      //submit_button.disabled = true;
+      formTag.appendChild(submit_button);
+    }
+
+    // 질문 및 이미지 가져오기 함수
+    async function fetchQuestion() {
+      try {
+        const res = await fetch('http://localhost:8000/third/question');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+
+        currentQuestionCategory = data.category;
+        images = data.images;
+
+        grid.innerHTML = ''; // 기존 이미지 모두 제거
+
+        images.forEach((img, i) => {
+          const div = document.createElement('div');
+          div.className = 'tile';
+          div.style.backgroundImage = `url(http://localhost:8000${img.url})`;
+          div.dataset.index = i; // 프론트엔드 인덱스
+
+          div.addEventListener('click', () => {
+            const index = parseInt(div.dataset.index);
+            if (selected.has(index)) {
+              selected.delete(index);
+              div.classList.remove('selected');
+            } else {
+              selected.add(index);
+              div.classList.add('selected');
+            }
+          });
+          grid.appendChild(div);
+        });
+        resultDiv.textContent = ''; // 결과 메시지 초기화
+        count = 0;
+      } catch (error) {
+        console.error('Error fetching question:', error);
+        questionDiv.textContent = '질문을 가져오는 데 실패했습니다.';
+      }
+    }
+
+    init();
+
+    // 페이지 로드 시 첫 질문 가져오기
+    fetchQuestion();
+  </script>
+</html>
