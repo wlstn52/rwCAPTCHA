@@ -26,6 +26,14 @@ class Result(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     category_asked = Column(String, nullable=False)
 
+class ResultSecond(Base):
+    __tablename__ = "results_second"
+    id = Column(Integer, primary_key=True, index=True)
+    is_correct = Column(Boolean, default=False)
+    asked_questions = Column(String)
+    selected_answers = Column(String)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
 
 # 추가: 미분류 이미지에 대한 사용자 피드백을 저장하는 테이블
 class UnclassifiedFeedback(Base):

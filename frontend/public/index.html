@@ -45,7 +45,7 @@
     // 질문 및 이미지 가져오기 함수
     async function fetchQuestion() {
       try {
-        const res = await fetch('http://localhost:8000/question');
+        const res = await fetch('http://localhost:8000/first/question');
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -90,7 +90,7 @@
       event.preventDefault(); // 페이지 새로고침 방지
 
       const selectedArray = Array.from(selected);
-      const res = await fetch('http://localhost:8000/submit', {
+      const res = await fetch('http://localhost:8000/first/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

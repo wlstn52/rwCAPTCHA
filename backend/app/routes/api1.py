@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Dict
 
-from .. import schemas, crud, database, models
+from .. import crud, database, models
+from ..schemas import schemas_first as schemas
 
-router = APIRouter()
+router = APIRouter(prefix="/first")
 
 
 # DB 세션 의존성 주입
@@ -88,7 +89,7 @@ async def submit_selection(payload: schemas.ResultIn, db: Session = Depends(get_
 
     # 메인 캡챠가 정답인 경우에만 결과 및 미분류 이미지 피드백을 저장
     if is_correct:
-        crud.save_result(db, payload.selected, is_correct, category_asked)  # 메인 캡챠 결과 저장
+        crud.save_result(db, [img.id for img in image_data_from_db], is_correct, category_asked)  # 메인 캡챠 결과 저장 // 이미지의 데이터베이스상의 id가 저장되도록 수정
 
         # 사용자가 선택한 이미지들 중 'unclassified' 이미지가 있다면 피드백 저장
         for selected_idx in selected_indices_set:

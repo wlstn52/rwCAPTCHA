@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #img {
+        width: 300px;
+        height: 300px;
+        background-size: auto;
+        background-position: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="question">가장 가까운 쓰레기 분류를 고르시오</div>
+    <div id="img"></div>
+    <div id="buttons"></div>
+    <div id="index"></div>
+    <div id="result"></div>
+  </body>
+
+  <script>
+    const categories = [
+        {category: "cardboard", name: "상자"},
+        {category: "glass", name: "유리"},
+        {category: "metal", name: "캔류/강철"},
+        {category: "paper", name: "종이"},
+        {category: "plastic", name: "플라스틱"},
+        {category: "trash", name: "일반 쓰레기"},
+    ]
+    const buttonsDiv = document.getElementById("buttons");
+    const indexDiv = document.getElementById("index");
+    const imageDiv = document.getElementById("img");
+    const resultDiv = document.getElementById("result");
+
+    let answers = [];
+    let choices = [];
+    let images = [];
+    let index = 0;
+    let number_of_images = 0;
+
+    async function fetchQuestion(){
+      const res = await fetch('http://localhost:8000/second/question')
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      images = data.images;
+      number_of_images = images.length;
+      showQuestion();
+    }
+    
+    function showQuestion(){
+        imageDiv.style.backgroundImage = `url(http://localhost:8000${images[index].url})`
+        indexDiv.textContent = `${index+1}/${number_of_images}`;indexDiv.textContent = `${index+1}/${number_of_images}`;    
+    }
+
+    async function submit(){
+        choices.forEach(btn => {btn.disabled = true;});
+        const res = await fetch('http://localhost:8000/second/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          images: images, // 백엔드에서 받은 이미지 정보
+          answers: answers, // 사용자가 선택한 답
+        }),
+        });
+        const data = await res.json();
+        resultDiv.textContent = data.is_correct ? '인증에 성공했습니다.' : '다시 시도해주세요';
+    }   
+
+    function init(){
+        categories.forEach((data) => {
+            const button = document.createElement('button');
+            button.className = "choice";
+            button.dataset.category = data.category;
+            button.textContent = data.name;
+            button.disabled = false;
+            buttonsDiv.appendChild(button);
+
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                answers.push(button.dataset.category);
+                if(index + 1 < number_of_images){
+                    index++; showQuestion();
+                }else{
+                    submit();
+                }
+            });
+            choices.push(button);
+        });
+    }
+
+    init();
+    fetchQuestion();
+
+  </script>
+</html>

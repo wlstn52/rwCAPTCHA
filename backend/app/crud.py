@@ -11,14 +11,12 @@ def get_image_data(db:Session, image_uuids: List[str]):
     uuid_objects = [uuid.UUID(u) for u in image_uuids]
     return db.query(models.ImagePath).filter(models.ImagePath.uuid.in_(uuid_objects)).all()
 
-
-def get_image_path(db: Session, id: int):
-    _path = db.query(models.ImagePath).filter(models.ImagePath.id == id).first()
+def get_image_path(db: Session, u: str):
+    _path = db.query(models.ImagePath).filter(models.ImagePath.uuid == uuid.UUID(u)).first()
     if _path is None: raise ValueError("존재하지 않는 이미지")
     return _path
 
 def get_random_images(db: Session, num: int):
-    print("test")
     return db.query(models.ImagePath).order_by(func.random()).limit(num).all()
 
 # 추가: 특정 카테고리를 제외하고 랜덤 이미지 가져오기 (주로 'unclassified' 제외)
@@ -37,6 +35,17 @@ def save_result(db: Session, selected: list, is_correct: bool, category_asked: s
         selected_indices=','.join(map(str, selected)),
         is_correct=is_correct,
         category_asked=category_asked
+    )
+    db.add(db_result)
+    db.commit()
+    db.refresh(db_result)
+    return db_result
+
+def save_result_second(db: Session,is_correct: bool, asked_questions: list, selected_answers: list):
+    db_result = models.ResultSecond(
+        asked_questions=','.join(map(str, asked_questions)),
+        selected_answers=','.join(map(str, selected_answers)),
+        is_correct=is_correct
     )
     db.add(db_result)
     db.commit()
