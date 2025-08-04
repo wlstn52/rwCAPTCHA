@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <style>
       #grid {
         display: grid;
@@ -78,7 +79,7 @@
           answers.push({category: i.id, amount:i.value});
         });
 
-        const res = await fetch('http://localhost:8000/third/submit', {
+        const res = await fetch('https://port-0-rwcaptcha-mdxb7ic7d809530c.sel5.cloudtype.app/third/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,7 +98,7 @@
     // 질문 및 이미지 가져오기 함수
     async function fetchQuestion() {
       try {
-        const res = await fetch('http://localhost:8000/third/question');
+        const res = await fetch('https://port-0-rwcaptcha-mdxb7ic7d809530c.sel5.cloudtype.app/third/question');
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
