@@ -40,7 +40,7 @@
     let number_of_images = 0;
 
     async function fetchQuestion(){
-      const res = await fetch('http://localhost:8000/second/question')
+      const res = await fetch('https://port-0-rwcaptcha-mdxb7ic7d809530c.sel5.cloudtype.app/second/question')
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -51,13 +51,13 @@
     }
     
     function showQuestion(){
-        imageDiv.style.backgroundImage = `url(https://rwstatic.netlify.app/${images[index].url})`
+        imageDiv.style.backgroundImage = `url(https://rwstatic.netlify.app${images[index].url})`
         indexDiv.textContent = `${index+1}/${number_of_images}`;indexDiv.textContent = `${index+1}/${number_of_images}`;    
     }
 
     async function submit(){
         choices.forEach(btn => {btn.disabled = true;});
-        const res = await fetch('http://localhost:8000/second/submit', {
+        const res = await fetch('https://port-0-rwcaptcha-mdxb7ic7d809530c.sel5.cloudtype.app/second/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

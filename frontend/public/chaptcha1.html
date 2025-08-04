@@ -46,7 +46,7 @@
     // 질문 및 이미지 가져오기 함수
     async function fetchQuestion() {
       try {
-        const res = await fetch('http://localhost:8000/first/question');
+        const res = await fetch('https://port-0-rwcaptcha-mdxb7ic7d809530c.sel5.cloudtype.app/first/question');
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -61,7 +61,7 @@
         images.forEach((img, i) => {
           const div = document.createElement('div');
           div.className = 'tile';
-          div.style.backgroundImage = `url(https://rwstatic.netlify.app/${img.url})`;
+          div.style.backgroundImage = `url(https://rwstatic.netlify.app${img.url})`;
           div.dataset.index = i; // 프론트엔드 인덱스
 
           div.addEventListener('click', () => {
@@ -91,7 +91,7 @@
       event.preventDefault(); // 페이지 새로고침 방지
 
       const selectedArray = Array.from(selected);
-      const res = await fetch('http://localhost:8000/first/submit', {
+      const res = await fetch('https://port-0-rwcaptcha-mdxb7ic7d809530c.sel5.cloudtype.app/first/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

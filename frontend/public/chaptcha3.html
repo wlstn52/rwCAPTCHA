@@ -112,7 +112,7 @@
         images.forEach((img, i) => {
           const div = document.createElement('div');
           div.className = 'tile';
-          div.style.backgroundImage = `url(https://rwstatic.netlify.app/${img.url})`;
+          div.style.backgroundImage = `url(https://rwstatic.netlify.app${img.url})`;
           div.dataset.index = i; // 프론트엔드 인덱스
 
           div.addEventListener('click', () => {
