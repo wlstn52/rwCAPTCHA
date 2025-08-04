@@ -16,6 +16,7 @@ app.add_middleware(
 )
 
 app.mount("/img", StaticFiles(directory="img"), name="img")
+app.mount('/', StaticFiles(directory='../../frontend/public', html=True), name='page')
 app.include_router(api1.router)
 app.include_router(api2.router)
 app.include_router(api3.router)

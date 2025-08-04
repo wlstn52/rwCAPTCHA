@@ -36,9 +36,6 @@ async def get_question(db: Session = Depends(get_db)):
     unclassified_images = crud.get_unclassified_random_images(db=db, num=3)
 
     if len(unclassified_images) < 3:
-        # 미분류 이미지가 3개 미만인 경우, 오류를 발생시키거나
-        # 또는 부족한 만큼 분류된 이미지를 더 가져오는 등의 유연한 로직을 추가할 수 있습니다.
-        # 여기서는 경고만 출력하고 현재 있는 미분류 이미지만 사용합니다.
         print(f"경고: 데이터베이스에 미분류 이미지가 {len(unclassified_images)}개 밖에 없습니다. 3개를 채우지 못했습니다.")
 
     num_classified_to_fetch = 9 - len(unclassified_images)
@@ -89,7 +86,7 @@ async def submit_selection(payload: schemas.ResultIn, db: Session = Depends(get_
 
     # 메인 캡챠가 정답인 경우에만 결과 및 미분류 이미지 피드백을 저장
     if is_correct:
-        crud.save_result(db, [img.id for img in image_data_from_db], is_correct, category_asked)  # 메인 캡챠 결과 저장 // 이미지의 데이터베이스상의 id가 저장되도록 수정
+        #crud.save_result(db, [img.id for img in image_data_from_db], is_correct, category_asked)  # 메인 캡챠 결과 저장 // 이미지의 데이터베이스상의 id가 저장되도록 수정
 
         # 사용자가 선택한 이미지들 중 'unclassified' 이미지가 있다면 피드백 저장
         for selected_idx in selected_indices_set:
