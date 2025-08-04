@@ -4,7 +4,11 @@ from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
 from .routes import api1, api2, api3
 
-app = FastAPI()
+app = FastAPI(
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
