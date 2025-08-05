@@ -2,21 +2,42 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title>second type</title>
     <style>
+      .wrapper {
+        min-height: 100vh;
+        display:flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+      }
+      
+      #buttons {
+        display: flex;
+        width: 80%;
+        justify-content: center;
+        gap: 2px;
+        flex-direction: row;
+      }
+
       #img {
-        width: 300px;
-        height: 300px;
+        max-width: 300px;
+        width: 50%;
+        aspect-ratio: 1/1;
         background-size: auto;
         background-position: center;
       }
     </style>
   </head>
   <body>
+    <div class="wrapper">
     <div id="question">가장 가까운 쓰레기 분류를 고르시오</div>
-    <div id="img"></div>
+    <img id="img"></img>
     <div id="buttons"></div>
     <div id="index"></div>
     <div id="result"></div>
+    </div>
   </body>
 
   <script>

@@ -2,7 +2,16 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title>third type</title>
     <style>
+      .wrapper {
+        min-height: 100vh;
+        display:flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+      }
       #grid {
         display: grid;
         grid-template-columns: repeat(4, 100px);
@@ -10,7 +19,7 @@
       }
       .tile {
         width: 100px;
-        height: 100px;
+        aspect-ratio: 1/1;
         border: 2px solid gray;
         background-size: cover;
         background-position: center;
@@ -21,13 +30,26 @@
         font-size: 1.5em;
         font-weight: bold;
       }
+      #field{
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+        align-items: center;
+        gap: 3px;
+      }
+      #field div label{
+        float: left;
+        width: 100px;
+      }
     </style>
   </head>
   <body>
+    <div class="wrapper">
     <h1>각 항목별 올바른 개수를 적으시오</h1>
     <div id="grid"></div>
     <div id="field"></div>
     <div id="result"></div>
+    </div>
   </body>
   <script>
     const categories = [
